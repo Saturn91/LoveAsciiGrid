@@ -14,43 +14,33 @@ local time = 0
 local currentFontIndex = 1
 
 function love.load()    
-    -- Create ASCII engine with a specific grid size
     engine = AsciiEngine:new({
         gridCols = 80,
         gridRows = 25,
         font = love.graphics.newFont(FONT_PATHS[currentFontIndex], 240)
     })
     
-    -- Create and add a grid layer
     engine:addLayer(AsciiGrid:new("main"))
     
-    -- Calculate initial scaling
     engine:calculateScaling()
     
-    -- Set window to be resizable
     love.window.setMode(800, 600, {resizable = true})
     
-    -- Initialize demo content
     setupDemo()
 end
 
 function love.update(dt)
     time = time + dt
     
-    -- Animate some content
     animateDemo(dt)
 end
 
 function love.draw()    
-    -- Draw the ASCII engine
     engine:draw()
-    
-    -- Draw info text
     drawInfo()
 end
 
 function love.resize(w, h)
-    -- Recalculate scaling when window is resized
     engine:resize()
 end
 
