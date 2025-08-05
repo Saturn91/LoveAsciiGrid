@@ -2,6 +2,8 @@
 
 A solid foundation for creating ASCII-based games in Love2D. This engine provides a flexible grid-based rendering system with layer support, perfect for roguelikes, text adventures, and retro-style games.
 
+![alt text](image.png)
+
 ## Features
 
 - **Grid-based ASCII rendering** with automatic scaling and centering
