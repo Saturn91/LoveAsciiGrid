@@ -38,7 +38,6 @@ end
 
 function love.update(dt)
     time = time + dt
-    engine:update(dt)
     
     -- Animate some content
     animateDemo(dt)
