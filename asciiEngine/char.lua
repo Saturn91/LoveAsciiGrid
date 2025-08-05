@@ -24,12 +24,4 @@ function Char:setBackgroundColor(backgroundColor)
     self.backgroundColor = backgroundColor
 end
 
-function Char:clone()
-    return Char:new(self.x, self.y, {
-        glyph = self.glyph,
-        color = {self.color[1], self.color[2], self.color[3], self.color[4]},
-        backgroundColor = self.backgroundColor and {self.backgroundColor[1], self.backgroundColor[2], self.backgroundColor[3], self.backgroundColor[4]} or nil
-    })
-end
-
 return Char

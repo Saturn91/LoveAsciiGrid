@@ -1,17 +1,25 @@
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
-local FONT_PATH = "assets/fonts/Ac437_IBM_BIOS.ttf"
+
+-- Font paths array
+local FONT_PATHS = {
+    "assets/fonts/Ac437_IBM_BIOS.ttf",
+    "assets/fonts/Ac437_IBM_BIOS-2x.ttf",  -- Replace with your actual font files
+    "assets/fonts/Ac437_IBM_BIOS-2y.ttf",  -- Replace with your actual font files
+    "assets/fonts/DejaVuSansMono.ttf"   -- Replace with your actual font files
+}
 
 local engine
 local grid
 local time = 0
+local currentFontIndex = 1
 
 function love.load()    
     -- Create ASCII engine with a specific grid size
     engine = AsciiEngine:new({
         gridCols = 80,
         gridRows = 25,
-        font = love.graphics.newFont(FONT_PATH, 240)
+        font = love.graphics.newFont(FONT_PATHS[currentFontIndex], 240)
     })
     
     -- Create and add a grid layer
@@ -36,10 +44,7 @@ function love.update(dt)
     animateDemo(dt)
 end
 
-function love.draw()
-    -- Clear background
-    love.graphics.clear(0.1, 0.1, 0.2, 1)
-    
+function love.draw()    
     -- Draw the ASCII engine
     engine:draw()
     
@@ -68,11 +73,11 @@ function love.keypressed(key)
         engine:setGridSize(120, 35)
         setupDemo()
     elseif key == "f" then
-        -- Change font size
-        local charW, charH = engine:getCharSize()
-        local newSize = charH == 14 and 21 or (charH == 21 and 56 or 14)
-        local newFont = love.graphics.newFont(FONT_PATH, newSize)
+        -- Cycle through fonts
+        currentFontIndex = currentFontIndex % #FONT_PATHS + 1
+        local newFont = love.graphics.newFont(FONT_PATHS[currentFontIndex], 240)
         engine:setFont(newFont)
+        setupDemo()
     elseif key == "c" then
         -- Clear and redraw
         setupDemo()
@@ -108,7 +113,7 @@ function setupDemo()
     local instructions = {
         "Controls:",
         "1/2/3 - Change grid size",
-        "F - Change font size",
+        "F - Change font",
         "C - Clear and redraw",
         "ESC - Quit"
     }
@@ -143,11 +148,11 @@ function drawInfo()
     
     local scale = engine:getScale()
     local cols, rows = engine:getGridSize()
-    local charW, charH = engine:getCharSize()
+    local fontName = FONT_PATHS[currentFontIndex]:match("([^/\\]+)%.ttf$") or "Unknown"
     
     local info = string.format(
-        "Scale: %.2f | Grid: %dx%d | Char: %dx%d",
-        scale, cols, rows, charW, charH
+        "Scale: %.2f | Grid: %dx%d | Font: %s",
+        scale, cols, rows, fontName
     )
     
     love.graphics.print(info, 10, 10)
