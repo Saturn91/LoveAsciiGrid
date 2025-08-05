@@ -10,7 +10,6 @@ local FONT_PATHS = {
 }
 
 local engine
-local grid
 local time = 0
 local currentFontIndex = 1
 
@@ -23,8 +22,7 @@ function love.load()
     })
     
     -- Create and add a grid layer
-    grid = AsciiGrid:new()
-    engine:addLayer(grid)
+    engine:addLayer(AsciiGrid:new("main"))
     
     -- Calculate initial scaling
     engine:calculateScaling()
@@ -84,28 +82,29 @@ function love.keypressed(key)
 end
 
 function setupDemo()
+    local mainGrid = engine:getLayerById("main")
     -- Clear the grid
-    grid:clear()
+    mainGrid:clear()
     
     local cols, rows = engine:getGridSize()
     
     -- Draw border
-    grid:drawBorder("█", {0.8, 0.8, 0.8, 1})
+    mainGrid:drawBorder("█", {0.8, 0.8, 0.8, 1})
     
     -- Draw title
     local title = "ASCII Grid Engine Demo"
     local titleX = math.floor((cols - #title) / 2) + 1
-    grid:writeText(titleX, 3, title, {1, 1, 0, 1}) -- Yellow
+    mainGrid:writeText(titleX, 3, title, {1, 1, 0, 1}) -- Yellow
     
     -- Draw grid size info
     local gridInfo = "Grid: " .. cols .. "x" .. rows
-    grid:writeText(3, 5, gridInfo, {0.7, 0.7, 1, 1}) -- Light blue
-    
+    mainGrid:writeText(3, 5, gridInfo, {0.7, 0.7, 1, 1}) -- Light blue
+
     -- Draw some decorative elements
     for i = 1, 10 do
         local x = math.random(3, cols - 2)
         local y = math.random(7, rows - 7)
-        grid:setCell(x, y, "░", {0.5, 0.8, 0.5, 1}) -- Light green
+        mainGrid:setCell(x, y, "░", {0.5, 0.8, 0.5, 1}) -- Light green
     end
     
     -- Draw instructions
@@ -118,12 +117,14 @@ function setupDemo()
     }
     
     for i, instruction in ipairs(instructions) do
-        grid:writeText(3, rows - 7 + i, instruction, {0.8, 0.8, 0.8, 1})
+        mainGrid:writeText(3, rows - 7 + i, instruction, {0.8, 0.8, 0.8, 1})
     end
 end
 
 function animateDemo(dt)
     local cols, rows = engine:getGridSize()
+    
+    local mainGrid = engine:getLayerById("main")
     
     -- Animate some sparkles
     if math.random() < 0.1 then
@@ -131,13 +132,13 @@ function animateDemo(dt)
         local y = math.random(8, rows - 8)
         local sparkles = {"*", "·", "°", "•"}
         local sparkle = sparkles[math.random(#sparkles)]
-        grid:setCell(x, y, sparkle, {1, 1, 1, 1})
+        mainGrid:setCell(x, y, sparkle, {1, 1, 1, 1})
     end
     
     -- Animate a moving character
     local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
     local waveY = math.floor(rows / 2)
-    grid:setCell(waveX, waveY, "@", {1, 0.5, 0.5, 1}) -- Red character
+    mainGrid:setCell(waveX, waveY, "@", {1, 0.5, 0.5, 1}) -- Red character
 end
 
 function drawInfo()
