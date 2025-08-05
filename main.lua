@@ -4,9 +4,9 @@ local AsciiGrid = require("asciiEngine.asciiGrid")
 -- Font paths array
 local FONT_PATHS = {
     "assets/fonts/Ac437_IBM_BIOS.ttf",
-    "assets/fonts/Ac437_IBM_BIOS-2x.ttf",  -- Replace with your actual font files
-    "assets/fonts/Ac437_IBM_BIOS-2y.ttf",  -- Replace with your actual font files
-    "assets/fonts/DejaVuSansMono.ttf"   -- Replace with your actual font files
+    "assets/fonts/Ac437_IBM_BIOS-2x.ttf",
+    "assets/fonts/Ac437_IBM_BIOS-2y.ttf",
+    "assets/fonts/DejaVuSansMono.ttf"
 }
 
 local engine
