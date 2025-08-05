@@ -1,11 +1,155 @@
-function love.onLoad()
+local AsciiEngine = require("asciiEngine.engine")
+local AsciiGrid = require("asciiEngine.asciiGrid")
+local FONT_PATH = "assets/fonts/Ac437_IBM_BIOS.ttf"
+
+local engine
+local grid
+local time = 0
+
+function love.load()    
+    -- Create ASCII engine with a specific grid size
+    engine = AsciiEngine:new({
+        gridCols = 80,
+        gridRows = 25,
+        font = love.graphics.newFont(FONT_PATH, 240)
+    })
     
+    -- Create and add a grid layer
+    grid = AsciiGrid:new()
+    engine:addLayer(grid)
+    
+    -- Calculate initial scaling
+    engine:calculateScaling()
+    
+    -- Set window to be resizable
+    love.window.setMode(800, 600, {resizable = true})
+    
+    -- Initialize demo content
+    setupDemo()
 end
 
-function love.onUpdate(dt)
+function love.update(dt)
+    time = time + dt
+    engine:update(dt)
     
+    -- Animate some content
+    animateDemo(dt)
 end
 
-function love.onDraw()
+function love.draw()
+    -- Clear background
+    love.graphics.clear(0.1, 0.1, 0.2, 1)
     
+    -- Draw the ASCII engine
+    engine:draw()
+    
+    -- Draw info text
+    drawInfo()
+end
+
+function love.resize(w, h)
+    -- Recalculate scaling when window is resized
+    engine:resize()
+end
+
+function love.keypressed(key)
+    if key == "escape" then
+        love.event.quit()
+    elseif key == "1" then
+        -- Change to 40x15 grid
+        engine:setGridSize(40, 15)
+        setupDemo()
+    elseif key == "2" then
+        -- Change to 80x25 grid
+        engine:setGridSize(80, 25)
+        setupDemo()
+    elseif key == "3" then
+        -- Change to 120x35 grid
+        engine:setGridSize(120, 35)
+        setupDemo()
+    elseif key == "f" then
+        -- Change font size
+        local charW, charH = engine:getCharSize()
+        local newSize = charH == 14 and 21 or (charH == 21 and 56 or 14)
+        local newFont = love.graphics.newFont(FONT_PATH, newSize)
+        engine:setFont(newFont)
+    elseif key == "c" then
+        -- Clear and redraw
+        setupDemo()
+    end
+end
+
+function setupDemo()
+    -- Clear the grid
+    grid:clear()
+    
+    local cols, rows = engine:getGridSize()
+    
+    -- Draw border
+    grid:drawBorder("█", {0.8, 0.8, 0.8, 1})
+    
+    -- Draw title
+    local title = "ASCII Grid Engine Demo"
+    local titleX = math.floor((cols - #title) / 2) + 1
+    grid:writeText(titleX, 3, title, {1, 1, 0, 1}) -- Yellow
+    
+    -- Draw grid size info
+    local gridInfo = "Grid: " .. cols .. "x" .. rows
+    grid:writeText(3, 5, gridInfo, {0.7, 0.7, 1, 1}) -- Light blue
+    
+    -- Draw some decorative elements
+    for i = 1, 10 do
+        local x = math.random(3, cols - 2)
+        local y = math.random(7, rows - 7)
+        grid:setCell(x, y, "░", {0.5, 0.8, 0.5, 1}) -- Light green
+    end
+    
+    -- Draw instructions
+    local instructions = {
+        "Controls:",
+        "1/2/3 - Change grid size",
+        "F - Change font size",
+        "C - Clear and redraw",
+        "ESC - Quit"
+    }
+    
+    for i, instruction in ipairs(instructions) do
+        grid:writeText(3, rows - 7 + i, instruction, {0.8, 0.8, 0.8, 1})
+    end
+end
+
+function animateDemo(dt)
+    local cols, rows = engine:getGridSize()
+    
+    -- Animate some sparkles
+    if math.random() < 0.1 then
+        local x = math.random(3, cols - 2)
+        local y = math.random(8, rows - 8)
+        local sparkles = {"*", "·", "°", "•"}
+        local sparkle = sparkles[math.random(#sparkles)]
+        grid:setCell(x, y, sparkle, {1, 1, 1, 1})
+    end
+    
+    -- Animate a moving character
+    local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
+    local waveY = math.floor(rows / 2)
+    grid:setCell(waveX, waveY, "@", {1, 0.5, 0.5, 1}) -- Red character
+end
+
+function drawInfo()
+    -- Draw info overlay (not part of the ASCII grid)
+    love.graphics.setColor(1, 1, 1, 0.8)
+    love.graphics.setFont(love.graphics.newFont(12))
+    
+    local scale = engine:getScale()
+    local cols, rows = engine:getGridSize()
+    local charW, charH = engine:getCharSize()
+    
+    local info = string.format(
+        "Scale: %.2f | Grid: %dx%d | Char: %dx%d",
+        scale, cols, rows, charW, charH
+    )
+    
+    love.graphics.print(info, 10, 10)
+    love.graphics.setColor(1, 1, 1, 1)
 end
