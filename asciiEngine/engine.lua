@@ -1,3 +1,6 @@
+GridChar = require("asciiEngine.GridChar")
+AsciiGrid = require("asciiEngine.asciiGrid")
+
 local AsciiEngine = {}
 
 AsciiEngine.__index = AsciiEngine
