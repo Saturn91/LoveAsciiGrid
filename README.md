@@ -4,6 +4,22 @@ A solid foundation for creating ASCII-based games in Love2D. This engine provide
 
 ![alt text](image.png)
 
+# import into project
+You can either load in the folder `src` directly into your love2d project or use this repo as a git submodule
+
+## use as a git submodule
+1. `git submodule add https://github.com/Saturn91/loveAsciiGrid.git libs/loveAsciiGrid`
+2. in order to allow relative imports use this handy code:
+
+```lua
+local packages = {
+  "libs/loveAsciiGrid/?.lua",
+}
+
+local current = love.filesystem.getRequirePath and love.filesystem.getRequirePath() or "?.lua;"
+love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
+```
+
 ## Features
 
 - **Grid-based ASCII rendering** with automatic scaling and centering
