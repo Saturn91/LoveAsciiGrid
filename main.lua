@@ -1,5 +1,6 @@
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
+require("spriteSheet.SpriteSheet")
 
 -- Font paths array
 local FONT_PATHS = {
@@ -8,6 +9,12 @@ local FONT_PATHS = {
     "assets/fonts/Ac437_IBM_BIOS-2y.ttf",
     "assets/fonts/DejaVuSansMono.ttf"
 }
+
+local spriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
+    gridWidth = 16,
+    gridHeight = 16,
+    id = "monsters"
+})
 
 local engine
 local time = 0
@@ -38,6 +45,8 @@ end
 function love.draw()    
     engine:draw()
     drawInfo()
+    love.graphics.setColor(1, 1, 1, 1)
+    spriteSheet:drawSprite({x = 0, y = 0}, 10, 10)
 end
 
 function love.resize(w, h)
