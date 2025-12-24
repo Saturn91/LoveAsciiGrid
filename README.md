@@ -25,6 +25,7 @@ love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
 - **Grid-based ASCII rendering** with automatic scaling and centering
 - **Multi-layer system** for organizing different game elements
 - **Font support** with easy font switching
+- **Sprite support** for graphical elements in grid cells
 - **Responsive scaling** that maintains aspect ratio
 - **Coordinate conversion** between screen and grid coordinates
 - **Modular design** for easy integration into other projects
@@ -88,7 +89,7 @@ local grid = engine:getLayerById("main")
 
 -- Set individual characters
 grid:setCell(x, y, {
-    glyp = "@",
+    glyph = "@",
     color = {1.0, 1.0, 1.0, 1.0}
 }) -- White @ symbol
 
@@ -100,6 +101,48 @@ grid:drawBorder("█", {0.8, 0.8, 0.8, 1}) -- Gray border
 
 -- Clear the grid
 grid:clear()
+```
+
+### Using Sprites
+
+Sprites allow you to render graphical elements in grid cells, which can be used alongside or instead of ASCII characters. Sprites automatically scale to fit the grid cell size.
+
+#### 1. Creating a Spritesheet
+
+First, create a spritesheet from an image file. The spritesheet divides the image into a grid of tiles.
+
+```lua
+-- Create a spritesheet with default 16x16 tiles
+local spriteSheet = SpriteSheet.new("path/to/sprites.png")
+```
+
+#### 2. Creating a Sprite
+
+Extract individual sprites from the spritesheet using grid coordinates.
+
+```lua
+-- Get a sprite at position (0, 0) top left in the spritesheet grid
+local playerSprite = spriteSheet:getSprite({x = 0, y = 0})
+
+```
+
+#### 3. Using Sprites in the Grid
+
+Assign sprites to grid cells. If both a glyph and sprite are set, the sprite takes priority.
+
+```lua
+-- Set a sprite in a cell
+grid:setCell(x, y, {
+    sprite = playerSprite,
+    color = {1.0, 1.0, 1.0, 1.0}  -- Optional tint color
+})
+
+-- You can also combine with glyph (only the sprite will be drawn)
+grid:setCell(x, y, {
+    glyph = "@",
+    sprite = playerSprite,
+    color = {1.0, 0.5, 0.0, 1.0}
+})
 ```
 
 ### Multiple Layers
@@ -148,11 +191,11 @@ engine:addLayer(uiGrid)
 - `AsciiGrid:new(id)` - Create a new grid layer
 
 #### Methods
-- `setCell(x, y, char, color)` - Set a character at position
-- `getCell(x, y)` - Get character and color at position
-- `writeText(x, y, text, color)` - Write text starting at position
-- `drawBorder(char, color)` - Draw a border around the grid
-- `clear()` - Clear all cells
+- `setCell(x, y, options)` - Set content at position. Options can include: `glyph` (string), `color` (table), `backgroundColor` (table), `sprite` (Sprite object)
+- `getCell(x, y)` - Get cell data at position
+- `writeText(x, y, text, color, backgroundColor)` - Write text starting at position
+- `drawBorder(glyph, color)` - Draw a border around the grid
+- `clear(glyph, color, backgroundColor)` - Clear all cells with optional defaults
 
 ## File Structure
 
@@ -162,6 +205,9 @@ LoveAsciiGrid/
 ├── asciiEngine/
 │   ├── engine.lua             # Core engine
 │   └── asciiGrid.lua          # Grid layer implementation
+├── spriteSheet/
+│   ├── Sprite.lua             # Sprite class for individual sprites
+│   └── SpriteSheet.lua        # Spritesheet management
 ├── assets/
 │   └── fonts/                 # Font files
 └── README.md

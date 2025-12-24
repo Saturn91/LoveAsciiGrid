@@ -1,3 +1,5 @@
+require("spriteSheet.SpriteSheet")
+
 local AsciiGrid = {}
 
 AsciiGrid.__index = AsciiGrid

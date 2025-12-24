@@ -2,7 +2,6 @@ love.graphics.setDefaultFilter('nearest', 'nearest')
 
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
-require("spriteSheet.SpriteSheet")
 
 -- Font paths array
 local FONT_PATHS = {
