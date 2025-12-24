@@ -163,6 +163,14 @@ function drawInfo()
         scale, cols, rows, fontName
     )
     
+    -- Draw background rectangle
+    local textWidth = love.graphics.getFont():getWidth(info)
+    local textHeight = love.graphics.getFont():getHeight()
+    love.graphics.setColor(0, 0, 0, 0.7)
+    love.graphics.rectangle("fill", 5, 5, textWidth + 10, textHeight + 10)
+    
+    -- Draw text
+    love.graphics.setColor(1, 1, 1, 0.8)
     love.graphics.print(info, 10, 10)
     love.graphics.setColor(1, 1, 1, 1)
 end
