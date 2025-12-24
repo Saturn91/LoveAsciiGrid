@@ -1,12 +1,12 @@
-local Char = {}
+local Cell = {}
 
-Char.__index = Char
+Cell.__index = Cell
 
-function Char:new(glyph, color)
+function Cell:new(glyph, color)
     local instance = setmetatable({}, self)
     instance.glyph = glyph or ' '
     instance.color = color or {1, 1, 1, 1}
     return instance
 end
 
-return Char
+return Cell
