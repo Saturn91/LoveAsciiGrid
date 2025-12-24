@@ -1,3 +1,5 @@
+love.graphics.setDefaultFilter('nearest', 'nearest')
+
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
 require("spriteSheet.SpriteSheet")
@@ -19,8 +21,6 @@ local monsterSpriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
 local engine
 local time = 0
 local currentFontIndex = 1
-
-local monsterSprite = monsterSpriteSheet:getSprite({x = 0, y = 0})
 
 function love.load()    
     engine = AsciiEngine:new({
@@ -48,7 +48,6 @@ function love.draw()
     engine:draw()
     drawInfo()
     love.graphics.setColor(1, 1, 1, 1)
-    SpriteSheet.drawSprite(monsterSprite, 10, 10)
 end
 
 function love.resize(w, h)
@@ -105,7 +104,9 @@ function setupDemo()
     for i = 1, 10 do
         local x = math.random(3, cols - 2)
         local y = math.random(7, rows - 7)
-        mainGrid:setCell(x, y, "░", {0.5, 0.8, 0.5, 1}) -- Light green
+        mainGrid:setCell(x, y, {
+            sprite = monsterSpriteSheet:getSprite({x = math.random(0, 3), y = math.random(0, 3)}),
+        })
     end
     
     -- Draw instructions
@@ -133,13 +134,19 @@ function animateDemo(dt)
         local y = math.random(8, rows - 8)
         local sparkles = {"*", "·", "°", "•"}
         local sparkle = sparkles[math.random(#sparkles)]
-        mainGrid:setCell(x, y, sparkle, {1, 1, 1, 1})
+        mainGrid:setCell(x, y, {
+            glyph = sparkle,
+            color = {1, 1, 0.5, 1}
+        })
     end
     
     -- Animate a moving character
     local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
     local waveY = math.floor(rows / 2)
-    mainGrid:setCell(waveX, waveY, "@", {1, 0.5, 0.5, 1}) -- Red character
+    mainGrid:setCell(waveX, waveY, {
+        glyph = "@",
+        color = {1, 0.5, 0.5, 1}
+    }) -- Red character
 end
 
 function drawInfo()

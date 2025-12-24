@@ -10,8 +10,8 @@ end
 
 function Sprite:draw(x, y, options)
     local options = options or {}
-    local scaleX = options.scaleX or 1
-    local scaleY = options.scaleY or 1
+    local scaleX = options.scaleX or 16
+    local scaleY = options.scaleY or 16
     local rotation = options.rotation or 0
 
     love.graphics.draw(

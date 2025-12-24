@@ -22,7 +22,12 @@ function AsciiGrid:initialize(engine)
     end
 end
 
-function AsciiGrid:setCell(x, y, glyph, color, backgroundColor)
+function AsciiGrid:setCell(x, y, options)
+    local options = options or {}
+    local glyph = options.glyph
+    local color = options.color
+    local backgroundColor = options.backgroundColor
+    local sprite = options.sprite
     local cols, rows = self.engine:getGridSize()
     
     if x >= 1 and x <= cols and y >= 1 and y <= rows then
@@ -30,6 +35,7 @@ function AsciiGrid:setCell(x, y, glyph, color, backgroundColor)
         if glyph then cell.glyph = glyph end
         if color then cell.color = color end
         if backgroundColor then cell.backgroundColor = backgroundColor end
+        if sprite then cell.sprite = sprite end
     end
 end
 
@@ -51,7 +57,7 @@ function AsciiGrid:clear(glyph, color, backgroundColor)
     
     for y = 1, rows do
         for x = 1, cols do
-            self:setCell(x, y, glyph, color, backgroundColor)
+            self:setCell(x, y, {glyph = glyph, color = color, backgroundColor = backgroundColor})
         end
     end
 end
@@ -62,7 +68,7 @@ function AsciiGrid:fillRect(x1, y1, x2, y2, glyph, color, backgroundColor)
     
     for y = startY, endY do
         for x = startX, endX do
-            self:setCell(x, y, glyph, color, backgroundColor)
+            self:setCell(x, y, {glyph = glyph, color = color, backgroundColor = backgroundColor})
         end
     end
 end
@@ -75,14 +81,14 @@ function AsciiGrid:drawBorder(glyph, color)
     
     -- Top and bottom borders
     for x = 1, cols do
-        self:setCell(x, 1, glyph, color)
-        self:setCell(x, rows, glyph, color)
+        self:setCell(x, 1, {glyph = glyph, color = color})
+        self:setCell(x, rows, {glyph = glyph, color = color})
     end
     
     -- Left and right borders
     for y = 1, rows do
-        self:setCell(1, y, glyph, color)
-        self:setCell(cols, y, glyph, color)
+        self:setCell(1, y, {glyph = glyph, color = color})
+        self:setCell(cols, y, {glyph = glyph, color = color})
     end
 end
 
@@ -96,7 +102,7 @@ function AsciiGrid:writeText(x, y, text, color, backgroundColor)
         local posX = x + i - 1
         
         if posX <= cols and y <= rows then
-            self:setCell(posX, y, char, color, backgroundColor)
+            self:setCell(posX, y, {glyph = char, color = color, backgroundColor = backgroundColor})
         else
             break -- Stop if we exceed grid boundaries
         end
@@ -120,14 +126,13 @@ function AsciiGrid:draw()
                     love.graphics.setColor(cell.backgroundColor)
                     love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
                 end
-
+                -- Draw Sprite 
                 if cell.sprite then
                     love.graphics.setColor(cell.color or {1, 1, 1, 1})
-                    love.graphics.draw(cell.sprite, drawX, drawY)
-                end
+                    cell.sprite:draw(drawX, drawY)
                 
                 -- Draw character
-                if cell.glyph and cell.glyph ~= ' ' then
+                elseif cell.glyph and cell.glyph ~= ' ' then
                     love.graphics.setColor(cell.color or {1, 1, 1, 1})
                     love.graphics.print(cell.glyph, drawX, drawY)
                 end
