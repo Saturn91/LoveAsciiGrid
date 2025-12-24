@@ -1,3 +1,5 @@
+require("spriteSheet.Sprite")
+
 SpriteSheet = {}
 SpriteSheet.__index = SpriteSheet
 
@@ -16,10 +18,11 @@ function SpriteSheet.new(imagePath, options)
     end
 
     local spriteSheet = setmetatable({
+        id = id,
         image = love.graphics.newImage(imagePath),
         gridWidth = options.gridWidth,
         gridHeight = options.gridHeight,
-        quads = {}
+        sprites = {}
     }, SpriteSheet)
 
     cashedSpriteSheets[id] = spriteSheet
@@ -33,8 +36,8 @@ function SpriteSheet:getSprite(pos, options)
         gridHeight = self.gridHeight
     }
 
-    if self.quads[pos.x] and self.quads[pos.x][pos.y] then
-        return self.quads[pos.x][pos.y]
+    if self.sprites[pos.x] and self.sprites[pos.x][pos.y] then
+        return self.sprites[pos.x][pos.y]
     end
 
     -- Create new quad and cache it
@@ -46,18 +49,17 @@ function SpriteSheet:getSprite(pos, options)
         self.image:getDimensions()
     )
 
-    if self.quads[pos.x] == nil then
-        self.quads[pos.x] = {}
+    if self.sprites[pos.x] == nil then
+        self.sprites[pos.x] = {}
     end
 
-    self.quads[pos.x][pos.y] = quad
+    self.sprites[pos.x][pos.y] = Sprite.new(quad, self.id)
 
-    return quad
+    return self.sprites[pos.x][pos.y]
 end
 
-function SpriteSheet:drawSprite(pos, x, y, options)
-    local quad = self:getSprite(pos, options)
-    love.graphics.draw(self.image, quad, x, y)
+function SpriteSheet.drawSprite(sprite, x, y, options)
+    sprite:draw(x, y, options)
 end
 
 function SpriteSheet.getById(id)

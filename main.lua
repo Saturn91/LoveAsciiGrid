@@ -10,7 +10,7 @@ local FONT_PATHS = {
     "assets/fonts/DejaVuSansMono.ttf"
 }
 
-local spriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
+local monsterSpriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
     gridWidth = 16,
     gridHeight = 16,
     id = "monsters"
@@ -19,6 +19,8 @@ local spriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
 local engine
 local time = 0
 local currentFontIndex = 1
+
+local monsterSprite = monsterSpriteSheet:getSprite({x = 0, y = 0})
 
 function love.load()    
     engine = AsciiEngine:new({
@@ -46,7 +48,7 @@ function love.draw()
     engine:draw()
     drawInfo()
     love.graphics.setColor(1, 1, 1, 1)
-    spriteSheet:drawSprite({x = 0, y = 0}, 10, 10)
+    SpriteSheet.drawSprite(monsterSprite, 10, 10)
 end
 
 function love.resize(w, h)

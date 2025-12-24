@@ -4,9 +4,9 @@ local GridCell = {}
 GridCell.__index = GridCell
 setmetatable(GridCell, Cell)
 
-function GridCell:new(x, y, options)
+function GridCell.new(x, y, options)
     options = options or {}
-    local instance = setmetatable(Cell:new(options.glyph, options.color), self)
+    local instance = setmetatable(Cell.new(options.glyph, options), GridCell)
     instance.x = x
     instance.y = y
     return instance

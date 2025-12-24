@@ -17,7 +17,7 @@ function AsciiGrid:initialize(engine)
     for y = 1, rows do
         self.cells[y] = {}
         for x = 1, cols do
-            self.cells[y][x] = GridCell:new(x, y)
+            self.cells[y][x] = GridCell.new(x, y)
         end
     end
 end
@@ -119,6 +119,11 @@ function AsciiGrid:draw()
                 if cell.backgroundColor then
                     love.graphics.setColor(cell.backgroundColor)
                     love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
+                end
+
+                if cell.sprite then
+                    love.graphics.setColor(cell.color or {1, 1, 1, 1})
+                    love.graphics.draw(cell.sprite, drawX, drawY)
                 end
                 
                 -- Draw character
