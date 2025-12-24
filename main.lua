@@ -12,10 +12,10 @@ local FONT_PATHS = {
     "assets/fonts/DejaVuSansMono.ttf"
 }
 
-local monsterSpriteSheet = SpriteSheet.new("resources/exampleMonsters.png", {
+local testSprites = SpriteSheet.new("resources/test-sprites.png", {
     gridWidth = 16,
     gridHeight = 16,
-    id = "monsters"
+    id = "testsprites"
 })
 
 local engine
@@ -105,7 +105,7 @@ function setupDemo()
         local x = math.random(3, cols - 2)
         local y = math.random(7, rows - 7)
         mainGrid:setCell(x, y, {
-            sprite = monsterSpriteSheet:getSprite({x = math.random(0, 3), y = math.random(0, 3)}),
+            sprite = testSprites:getSprite({x = math.random(0, 1), y = math.random(0, 1)}),
         })
     end
     
@@ -144,8 +144,7 @@ function animateDemo(dt)
     local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
     local waveY = math.floor(rows / 2)
     mainGrid:setCell(waveX, waveY, {
-        glyph = "@",
-        color = {1, 0.5, 0.5, 1}
+        sprite = testSprites:getSprite({x = 0, y = 0}),
     }) -- Red character
 end
 

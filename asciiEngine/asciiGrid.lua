@@ -129,7 +129,7 @@ function AsciiGrid:draw()
                 -- Draw Sprite 
                 if cell.sprite then
                     love.graphics.setColor(cell.color or {1, 1, 1, 1})
-                    cell.sprite:draw(drawX, drawY)
+                    cell.sprite:draw(drawX, drawY, {scaleX = charWidth / cell.sprite.width, scaleY = charHeight / cell.sprite.height})
                 
                 -- Draw character
                 elseif cell.glyph and cell.glyph ~= ' ' then
