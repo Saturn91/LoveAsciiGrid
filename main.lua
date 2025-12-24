@@ -89,7 +89,9 @@ function setupDemo()
     local cols, rows = engine:getGridSize()
     
     -- Draw border
-    mainGrid:drawBorder("█", {0.8, 0.8, 0.8, 1})
+    mainGrid:drawBorder({
+        glyph = "█",
+    }, {0.8, 0.8, 0.8, 1})
     
     -- Draw title
     local title = "ASCII Grid Engine Demo"
