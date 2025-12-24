@@ -1,5 +1,8 @@
+love.graphics.setDefaultFilter('nearest', 'nearest')
+
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
+require("spriteSheet.SpriteSheet")
 
 -- Font paths array
 local FONT_PATHS = {
@@ -8,6 +11,12 @@ local FONT_PATHS = {
     "assets/fonts/Ac437_IBM_BIOS-2y.ttf",
     "assets/fonts/DejaVuSansMono.ttf"
 }
+
+local testSprites = SpriteSheet.new("resources/test-sprites.png", {
+    gridWidth = 16,
+    gridHeight = 16,
+    id = "testsprites"
+})
 
 local engine
 local time = 0
@@ -38,6 +47,7 @@ end
 function love.draw()    
     engine:draw()
     drawInfo()
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 function love.resize(w, h)
@@ -79,7 +89,9 @@ function setupDemo()
     local cols, rows = engine:getGridSize()
     
     -- Draw border
-    mainGrid:drawBorder("█", {0.8, 0.8, 0.8, 1})
+    mainGrid:drawBorder({
+        glyph = "█",
+    }, {0.8, 0.8, 0.8, 1})
     
     -- Draw title
     local title = "ASCII Grid Engine Demo"
@@ -94,7 +106,9 @@ function setupDemo()
     for i = 1, 10 do
         local x = math.random(3, cols - 2)
         local y = math.random(7, rows - 7)
-        mainGrid:setCell(x, y, "░", {0.5, 0.8, 0.5, 1}) -- Light green
+        mainGrid:setCell(x, y, {
+            sprite = testSprites:getSprite({x = math.random(0, 1), y = math.random(0, 1)}),
+        })
     end
     
     -- Draw instructions
@@ -122,13 +136,18 @@ function animateDemo(dt)
         local y = math.random(8, rows - 8)
         local sparkles = {"*", "·", "°", "•"}
         local sparkle = sparkles[math.random(#sparkles)]
-        mainGrid:setCell(x, y, sparkle, {1, 1, 1, 1})
+        mainGrid:setCell(x, y, {
+            glyph = sparkle,
+            color = {1, 1, 0.5, 1}
+        })
     end
     
     -- Animate a moving character
     local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
     local waveY = math.floor(rows / 2)
-    mainGrid:setCell(waveX, waveY, "@", {1, 0.5, 0.5, 1}) -- Red character
+    mainGrid:setCell(waveX, waveY, {
+        sprite = testSprites:getSprite({x = 0, y = 0}),
+    }) -- Red character
 end
 
 function drawInfo()

@@ -87,7 +87,10 @@ end
 local grid = engine:getLayerById("main")
 
 -- Set individual characters
-grid:setCell(x, y, "@", {1, 1, 1, 1}) -- White @ symbol
+grid:setCell(x, y, {
+    glyp = "@",
+    color = {1.0, 1.0, 1.0, 1.0}
+}) -- White @ symbol
 
 -- Write text
 grid:writeText(10, 5, "Hello World!", {1, 1, 0, 1}) -- Yellow text
