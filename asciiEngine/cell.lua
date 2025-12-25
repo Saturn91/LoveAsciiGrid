@@ -15,6 +15,7 @@ function Cell.new(glyph, options)
     instance.glyph = glyph or ' '
     instance.color = options.color or {1, 1, 1, 1}
     instance.sprite = options.sprite
+    instance.backgroundColor = options.backgroundColor or {0, 0, 0, 0}
     return instance
 end
 

@@ -107,6 +107,7 @@ function setupDemo()
         local y = math.random(7, rows - 7)
         mainGrid:setCell(x, y, {
             sprite = testSprites:getSprite({x = math.random(0, 1), y = math.random(0, 1)}),
+            backgroundColor = {0.5, 0.5, 0.5, 1}
         })
     end
     
