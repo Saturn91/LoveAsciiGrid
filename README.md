@@ -20,6 +20,26 @@ local current = love.filesystem.getRequirePath and love.filesystem.getRequirePat
 love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
 ```
 
+### Setting Up the Require Path
+
+To use the submodule in your Love2D project, add the require path setup code to the top of your `main.lua` file (before any `require()` calls that use the submodule):
+
+```lua
+-- Set up require path for the LoveAsciiGrid submodule
+local packages = {
+  "libs/loveAsciiGrid/?.lua",
+}
+
+local current = love.filesystem.getRequirePath and love.filesystem.getRequirePath() or "?.lua;"
+love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
+
+-- Now you can require modules from the submodule
+local AsciiEngine = require("asciiEngine.engine")
+local AsciiGrid = require("asciiEngine.asciiGrid")
+```
+
+This tells Love2D's filesystem to look for modules in the `libs/loveAsciiGrid/` folder. After this setup, you can use the library as shown in the Usage section.
+
 ## Features
 
 - **Grid-based ASCII rendering** with automatic scaling and centering
@@ -54,21 +74,32 @@ love .
 ### Basic Setup
 
 ```lua
+local packages = {
+  "libs/loveAsciiGrid/?.lua",
+}
+
+local current = love.filesystem.getRequirePath and love.filesystem.getRequirePath() or "?.lua;"
+love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
+
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
 
+local engine = nil
+
 function love.load()
     -- Create the engine
-    local engine = AsciiEngine:new({
+    engine = AsciiEngine:new({
         gridCols = 80,
         gridRows = 25,
-        font = love.graphics.newFont("path/to/font.ttf", 16)
+        font = love.graphics.newFont("path/to/font.ttf", 240)
     })
     
     -- Add a grid layer
-    local mainGrid = AsciiGrid:new("main")
-    engine:addLayer(mainGrid)
-    
+    engine:addLayer(AsciiGrid:new("main"))
+
+    local mainGrid = engine:getLayerById("main")
+    mainGrid:writeText(3, 3, "Hello, ASCII Game!", {1.0, 1.0, 0.0, 1.0})
+
     -- Calculate initial scaling
     engine:calculateScaling()
 end
