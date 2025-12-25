@@ -3,6 +3,8 @@ love.graphics.setDefaultFilter('nearest', 'nearest')
 local AsciiEngine = require("asciiEngine.engine")
 local AsciiGrid = require("asciiEngine.asciiGrid")
 
+local charScale = 240.0
+
 -- Font paths array
 local FONT_PATHS = {
     "assets/fonts/Ac437_IBM_BIOS.ttf",
@@ -25,7 +27,7 @@ function love.load()
     engine = AsciiEngine:new({
         gridCols = 80,
         gridRows = 25,
-        font = love.graphics.newFont(FONT_PATHS[currentFontIndex], 240)
+        font = love.graphics.newFont(FONT_PATHS[currentFontIndex], charScale)
     })
     
     engine:addLayer(AsciiGrid:new("main"))
@@ -158,10 +160,11 @@ function drawInfo()
     local scale = engine:getScale()
     local cols, rows = engine:getGridSize()
     local fontName = FONT_PATHS[currentFontIndex]:match("([^/\\]+)%.ttf$") or "Unknown"
+    local charWidth, charHeight = engine:getCharSize()
     
     local info = string.format(
-        "Scale: %.2f | Grid: %dx%d | Font: %s",
-        scale, cols, rows, fontName
+        "Scale: %.2f | Grid: %dx%d | Font: %s | char ratio %.2f x %.2f",
+        scale, cols, rows, fontName, charWidth / charScale, charHeight / charScale
     )
     
     -- Draw background rectangle
