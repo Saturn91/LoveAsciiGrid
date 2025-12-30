@@ -5,15 +5,26 @@ local AsciiGrid = {}
 AsciiGrid.__index = AsciiGrid
 
 function AsciiGrid:new(id)
+    local options = options or {}
     if id == nil then error("AsciiGrid requires an id") end
-    return setmetatable({id = id}, self)
+    return setmetatable({
+        id = id,
+        engine = nil,
+        cells = {},
+        viewport = {
+            x = 1,
+            y = 1,
+        },
+    }, self)
 end
 
 function AsciiGrid:initialize(engine)
     self.engine = engine
     self.cells = {}
+    self.viewport.rows = engine.gridRows
+    self.viewport.cols = engine.gridCols
 
-    local cols, rows = engine:getGridSize()
+    local cols, rows =  engine:getGridSize()
     
     -- Initialize grid cells
     for y = 1, rows do
@@ -96,18 +107,16 @@ function AsciiGrid:drawBorder(options)
     local color = options.color or {1, 1, 1, 1}
     local sprite = options.sprite
     
-    local cols, rows = self.engine:getGridSize()
-    
     -- Top and bottom borders
-    for x = 1, cols do
-        self:setCell(x, 1, {glyph = glyph, color = color, sprite = sprite})
-        self:setCell(x, rows, {glyph = glyph, color = color, sprite = sprite})
+    for x = self.viewport.x, self.viewport.x + self.viewport.cols - 1 do
+        self:setCell(x, self.viewport.y, {glyph = glyph, color = color, sprite = sprite})
+        self:setCell(x, self.viewport.y + self.viewport.rows - 1, {glyph = glyph, color = color, sprite = sprite})
     end
     
     -- Left and right borders
-    for y = 1, rows do
-        self:setCell(1, y, {glyph = glyph, color = color, sprite = sprite})
-        self:setCell(cols, y, {glyph = glyph, color = color, sprite = sprite})
+    for y = self.viewport.y, self.viewport.y + self.viewport.rows - 1 do
+        self:setCell(self.viewport.x, y, {glyph = glyph, color = color, sprite = sprite})
+        self:setCell(self.viewport.x + self.viewport.cols - 1, y, {glyph = glyph, color = color, sprite = sprite})
     end
 end
 
@@ -130,10 +139,12 @@ end
 
 function AsciiGrid:draw()
     local charWidth, charHeight = self.engine:getCharSize()
-    local cols, rows = self.engine:getGridSize()
     
-    for y = 1, rows do
-        for x = 1, cols do
+    for y = self.viewport.y, self.viewport.y + self.viewport.rows - 1 do
+        for x = self.viewport.x, self.viewport.x + self.viewport.cols - 1 do
+            if x < 1 or y < 1 then goto continue end
+            if y < 1 or y > #self.cells then goto continue end
+            
             local cell = self.cells[y][x]
             
             if cell then
@@ -156,11 +167,21 @@ function AsciiGrid:draw()
                     love.graphics.print(cell.glyph, drawX, drawY)
                 end
             end
+
+            ::continue::
         end
     end
     
     -- Reset color to white
     love.graphics.setColor(1, 1, 1, 1)
+end
+
+function AsciiGrid:setViewport(options)
+    options = options or {}
+    if options.x then self.viewport.x = options.x end
+    if options.y then self.viewport.y = options.y end
+    if options.cols then self.viewport.cols = options.cols end
+    if options.rows then self.viewport.rows = options.rows end
 end
 
 return AsciiGrid
