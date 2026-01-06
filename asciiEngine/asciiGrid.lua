@@ -103,6 +103,7 @@ function AsciiGrid:fillRect(x1, y1, x2, y2, glyph, color, backgroundColor)
 end
 
 function AsciiGrid:drawBorder(options)
+    local options = options or {}
     local glyph = options.glyph or "█"
     local color = options.color or {1, 1, 1, 1}
     local sprite = options.sprite
