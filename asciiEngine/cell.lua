@@ -12,10 +12,10 @@ Cell.__index = Cell
 function Cell.new(glyph, options)
     local options = options or {}
     local instance = setmetatable({}, Cell)
-    instance.glyph = glyph or ' '
+    instance.glyph = glyph
     instance.color = options.color or {1, 1, 1, 1}
     instance.sprite = options.sprite
-    instance.backgroundColor = options.backgroundColor or {0, 0, 0, 0}
+    instance.backgroundColor = options.backgroundColor
     return instance
 end
 

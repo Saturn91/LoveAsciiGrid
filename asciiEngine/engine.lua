@@ -79,8 +79,8 @@ function AsciiEngine:calculateScaling()
     self.offsetY = (windowHeight - scaledHeight) / 2
 end
 
-function AsciiEngine:addLayer(layer)
-    layer:initialize(self)
+function AsciiEngine:addLayer(layer, options)
+    layer:initialize(self, options)
     if self.layerLookUp[layer.id] then error("Layer with id '" .. layer.id .. "' already exists") end
     self.layerLookUp[layer.id] = layer
     table.insert(self.layers, layer)
@@ -93,10 +93,28 @@ function AsciiEngine:draw()
     love.graphics.scale(self.scale, self.scale)
 
     love.graphics.setFont(self.font)
+
+    local drawX, drawY
     
-    for _, layer in ipairs(self.layers) do
-        if layer.draw then
-            layer:draw()
+    for x = 1, self.gridCols do
+        for y = 1, self.gridRows do
+            drawX = (x - 1) * self.charWidth
+            drawY = (y - 1) * self.charHeight
+
+            local hasAnyDrawn = false
+            for key, layer in ipairs(self.layers) do
+                local isBlocking = layer.blocking
+
+                --clear cell bellow blocking layers
+                if layer:isDrawableCell(x, y) and isBlocking and hasAnyDrawn then
+                    love.graphics.setColor(0, 0, 0, 1)
+                    love.graphics.rectangle("fill", drawX, drawY, self.charWidth, self.charHeight)
+                end
+
+                if layer:drawCell(x, y, self.charWidth, self.charHeight) then
+                    hasAnyDrawn = true
+                end
+            end
         end
     end
     
@@ -140,9 +158,9 @@ function AsciiEngine:getLayerById(id)
     return self.layerLookUp[id]
 end
 
-function AsciiEngine:clearAllLayers()
+function AsciiEngine:clearAllLayers(options)
     for _, layer in ipairs(self.layers) do
-        layer:clear()
+        layer:clear(options)
     end
 end
 

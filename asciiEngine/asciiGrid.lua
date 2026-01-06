@@ -4,11 +4,19 @@ local AsciiGrid = {}
 
 AsciiGrid.__index = AsciiGrid
 
-function AsciiGrid:new(id)
+function AsciiGrid:new(id, options)
     local options = options or {}
+
+    if options.blocking == false then
+        options.blocking = false
+    else
+        options.blocking = true
+    end
+
     if id == nil then error("AsciiGrid requires an id") end
     return setmetatable({
         id = id,
+        blocking = options.blocking,
         engine = nil,
         cells = {},
         viewport = {
@@ -18,7 +26,8 @@ function AsciiGrid:new(id)
     }, self)
 end
 
-function AsciiGrid:initialize(engine)
+function AsciiGrid:initialize(engine, options)
+    
     self.engine = engine
     self.cells = {}
     self.viewport.rows = engine.gridRows
@@ -37,18 +46,15 @@ end
 
 function AsciiGrid:setCell(x, y, options)
     local options = options or {}
-    local glyph = options.glyph
-    local color = options.color or {1, 1, 1, 1}
-    local backgroundColor = options.backgroundColor
-    local sprite = options.sprite
     local cols, rows = self.engine:getGridSize()
     
     if x >= 1 and x <= cols and y >= 1 and y <= rows then
         local cell = self.cells[y][x]
-        if glyph then cell.glyph = glyph end
-        if color then cell.color = color end
-        if backgroundColor then cell.backgroundColor = backgroundColor end
-        cell.sprite = sprite
+
+        cell.glyph = options.glyph
+        cell.color = options.color or {1, 1, 1, 1}
+        cell.backgroundColor = options.backgroundColor
+        cell.sprite = options.sprite
     end
 end
 
@@ -62,31 +68,19 @@ function AsciiGrid:getCell(x, y)
 end
 
 function AsciiGrid:clearCell(x, y, options)
-    local options = options or {}
-    local glyph = options.glyph or ' '
-    local color = options.color or {1, 1, 1, 1} -- White
-    local backgroundColor = options.backgroundColor or nil
-    local sprite = options.sprite or nil
-    
-    local cols, rows = self.engine:getGridSize()
+   local cols, rows = self.engine:getGridSize()
     
     if x >= 1 and x <= cols and y >= 1 and y <= rows then
-        self:setCell(x, y, {glyph = glyph, color = color, backgroundColor = backgroundColor, sprite = sprite})
+        self:setCell(x, y, options)
     end
 end
 
 function AsciiGrid:clear(options)
-    local options = options or {}
-    local glyph = options.glyph or ' '
-    local color = options.color or {1, 1, 1, 1} -- White
-    local backgroundColor = options.backgroundColor or nil
-    local sprite = options.sprite or nil
-    
     local cols, rows = self.engine:getGridSize()
     
     for y = 1, rows do
         for x = 1, cols do
-            self:setCell(x, y, {glyph = glyph, color = color, backgroundColor = backgroundColor, sprite = sprite})
+            self:clearCell(x, y, options)
         end
     end
 end
@@ -138,43 +132,53 @@ function AsciiGrid:writeText(x, y, text, color, backgroundColor)
     end
 end
 
-function AsciiGrid:draw()
-    local charWidth, charHeight = self.engine:getCharSize()
-    
-    for y = self.viewport.y, self.viewport.y + self.viewport.rows - 1 do
-        for x = self.viewport.x, self.viewport.x + self.viewport.cols - 1 do
-            if x < 1 or y < 1 then goto continue end
-            if y < 1 or y > #self.cells then goto continue end
-            
-            local cell = self.cells[y][x]
-            
-            if cell then
-                local drawX = (x - 1) * charWidth
-                local drawY = (y - 1) * charHeight
-                
-                -- Draw background if specified
-                if cell.backgroundColor then
-                    love.graphics.setColor(cell.backgroundColor)
-                    love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
-                end
-                -- Draw Sprite 
-                if cell.sprite then
-                    love.graphics.setColor(cell.color or {1, 1, 1, 1})
-                    cell.sprite:draw(drawX, drawY, {scaleX = charWidth / cell.sprite.width, scaleY = charHeight / cell.sprite.height})
-                
-                -- Draw character
-                elseif cell.glyph and cell.glyph ~= ' ' then
-                    love.graphics.setColor(cell.color or {1, 1, 1, 1})
-                    love.graphics.print(cell.glyph, drawX, drawY)
-                end
-            end
+function AsciiGrid:isDrawableCell(x, y, debug)
+    if x < self.viewport.x or x >= self.viewport.x + self.viewport.cols then return false end
+    if y < self.viewport.y or y >= self.viewport.y + self.viewport.rows then return false end
+    if x < 1 or y < 1 then return false end
+    if y < 1 or y > #self.cells then return false end
+    if x < 1 or x > #self.cells[y] then return false end
 
-            ::continue::
-        end
+    if debug then
+        Log.log(self.cells[y][x])
     end
     
-    -- Reset color to white
-    love.graphics.setColor(1, 1, 1, 1)
+    if self.cells[y][x].glyph or self.cells[y][x].sprite or self.cells[y][x].backgroundColor then
+        return true
+    end
+
+    return false
+end
+
+function AsciiGrid:drawCell(x, y, charWidth, charHeight)
+    if not self:isDrawableCell(x, y) then return false end
+
+    local cell = self.cells[y][x]
+
+    if cell then
+        local drawX = (x - 1) * charWidth
+        local drawY = (y - 1) * charHeight
+        
+        -- Draw background if specified
+        if cell.backgroundColor then
+            love.graphics.setColor(cell.backgroundColor)
+            love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
+        end
+        -- Draw Sprite 
+        if cell.sprite then
+            love.graphics.setColor(cell.color or {1, 1, 1, 1})
+            cell.sprite:draw(drawX, drawY, {scaleX = charWidth / cell.sprite.width, scaleY = charHeight / cell.sprite.height})
+        
+        -- Draw character
+        elseif cell.glyph and cell.glyph ~= ' ' then
+            love.graphics.setColor(cell.color or {1, 1, 1, 1})
+            love.graphics.print(cell.glyph, drawX, drawY)
+        end
+
+        return true
+    end
+
+    return false
 end
 
 function AsciiGrid:setViewport(options)
