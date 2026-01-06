@@ -140,4 +140,10 @@ function AsciiEngine:getLayerById(id)
     return self.layerLookUp[id]
 end
 
+function AsciiEngine:clearAllLayers()
+    for _, layer in ipairs(self.layers) do
+        layer:clear()
+    end
+end
+
 return AsciiEngine
