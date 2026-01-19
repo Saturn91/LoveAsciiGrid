@@ -148,7 +148,7 @@ function love.update(dt)
     
     -- Check if mouse is over the grid
     if engine.mouseGridPos then
-        local x, y = table.unpack(engine.mouseGridPos)
+        local x, y = engine.mouseGridPos[1], engine.mouseGridPos[2]
         -- Mouse is at grid position (x, y)
         -- You can interact with the grid at this position
     else
