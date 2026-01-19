@@ -121,6 +121,20 @@ function AsciiEngine:draw()
     love.graphics.pop()
 end
 
+local mousePos = {x = 0, y = 0}
+AsciiEngine.mouseGridPos = nil
+
+function AsciiEngine:update()
+    mousePos.x, mousePos.y = love.mouse.getPosition()
+    -- if outside of grid, set to nil
+    if mousePos.x < self.offsetX or mousePos.x > self.offsetX + self.gridCols * self.charWidth * self.scale or
+       mousePos.y < self.offsetY or mousePos.y > self.offsetY + self.gridRows * self.charHeight * self.scale then
+        self.mouseGridPos = nil
+    else
+        self.mouseGridPos = {self:screenToGrid(mousePos.x, mousePos.y)}
+    end
+end
+
 function AsciiEngine:screenToGrid(screenX, screenY)
     local gridX = math.floor((screenX - self.offsetX) / (self.charWidth * self.scale)) + 1
     local gridY = math.floor((screenY - self.offsetY) / (self.charHeight * self.scale)) + 1

@@ -108,6 +108,10 @@ function love.draw()
     engine:draw()
 end
 
+function love.update(dt)
+    engine:update()
+end
+
 function love.resize()
     engine:resize()
 end
@@ -133,6 +137,27 @@ grid:drawBorder("█", {0.8, 0.8, 0.8, 1}) -- Gray border
 -- Clear the grid
 grid:clear()
 ```
+
+### Mouse Input
+
+The engine automatically tracks the mouse position in grid coordinates. Make sure to call `engine:update()` in your `love.update(dt)` function to keep the mouse position updated.
+
+```lua
+function love.update(dt)
+    engine:update()
+    
+    -- Check if mouse is over the grid
+    if engine.mouseGridPos then
+        local x, y = table.unpack(engine.mouseGridPos)
+        -- Mouse is at grid position (x, y)
+        -- You can interact with the grid at this position
+    else
+        -- Mouse is outside the grid area
+    end
+end
+```
+
+You can also manually convert screen coordinates to grid coordinates using `engine:screenToGrid(x, y)`.
 
 ### Using Sprites
 
@@ -213,8 +238,12 @@ engine:addLayer(uiGrid)
 - `getLayerById(id)` - Retrieve a layer by ID
 - `draw()` - Render all layers
 - `resize()` - Recalculate scaling after window resize
+- `update()` - Update internal state including mouse grid position
 - `screenToGrid(x, y)` - Convert screen coordinates to grid coordinates
 - `gridToScreen(x, y)` - Convert grid coordinates to screen coordinates
+
+#### Properties
+- `mouseGridPos` - Current mouse position in grid coordinates as a table `{x, y}` or `nil` if mouse is outside the grid area. Automatically updated in the `update()` method.
 
 ### AsciiGrid
 
