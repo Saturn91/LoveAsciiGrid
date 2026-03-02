@@ -20,6 +20,10 @@ function AsciiEngine:new(options)
     instance.offsetY = 0
     instance.charWidth = 0
     instance.charHeight = 0
+
+    -- Camera / world-scroll offset (world coords of the top-left grid cell)
+    instance.gridOffsetX = 0
+    instance.gridOffsetY = 0
     
     -- Layers system
     instance.layers = {}
@@ -166,6 +170,13 @@ end
 
 function AsciiEngine:getScale()
     return self.scale
+end
+
+-- Set the world coordinate that maps to grid cell (1, 1).
+-- All world-space layers should apply this offset when rendering.
+function AsciiEngine:setGridOffset(x, y)
+    self.gridOffsetX = x
+    self.gridOffsetY = y
 end
 
 function AsciiEngine:getLayerById(id)
