@@ -47,14 +47,16 @@ end
 function AsciiGrid:setCell(x, y, options)
     local options = options or {}
     local cols, rows = self.engine:getGridSize()
-    
+
     if x >= 1 and x <= cols and y >= 1 and y <= rows then
         local cell = self.cells[y][x]
 
-        cell.glyph = options.glyph
-        cell.color = options.color or {1, 1, 1, 1}
+        cell.glyph           = options.glyph
+        cell.color           = options.color or {1, 1, 1, 1}
         cell.backgroundColor = options.backgroundColor
-        cell.sprite = options.sprite
+        cell.sprite          = options.sprite
+        cell.offsetX         = options.offsetX or 0
+        cell.offsetY         = options.offsetY or 0
     end
 end
 
@@ -156,19 +158,19 @@ function AsciiGrid:drawCell(x, y, charWidth, charHeight)
     local cell = self.cells[y][x]
 
     if cell then
-        local drawX = (x - 1) * charWidth
-        local drawY = (y - 1) * charHeight
-        
+        local drawX = (x - 1) * charWidth  + (cell.offsetX or 0)
+        local drawY = (y - 1) * charHeight + (cell.offsetY or 0)
+
         -- Draw background if specified
         if cell.backgroundColor then
             love.graphics.setColor(cell.backgroundColor)
             love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
         end
-        -- Draw Sprite 
+        -- Draw Sprite
         if cell.sprite then
             love.graphics.setColor(cell.color or {1, 1, 1, 1})
             cell.sprite:draw(drawX, drawY, {scaleX = charWidth / cell.sprite.width, scaleY = charHeight / cell.sprite.height})
-        
+
         -- Draw character
         elseif cell.glyph and cell.glyph ~= ' ' then
             love.graphics.setColor(cell.color or {1, 1, 1, 1})
