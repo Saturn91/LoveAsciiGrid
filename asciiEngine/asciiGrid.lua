@@ -32,6 +32,8 @@ function AsciiGrid:initialize(engine, options)
     
     self.engine = engine
     self.cells = {}
+    self.canvas = nil
+    self.dirty = true
     self.viewport.rows = engine.gridRows
     self.viewport.cols = engine.gridCols
 
@@ -212,17 +214,29 @@ function AsciiGrid:drawCellBuffered(x, y, charWidth, charHeight)
     return false
 end
 
--- Re-renders all cells onto self.canvas. Resets Love2D transform so the canvas
--- is drawn at natural (unscaled) size regardless of the caller's transform state.
+-- Re-renders all cells onto self.canvas. Creates the canvas at scaled
+-- (screen-space) dimensions so it never exceeds GPU texture size limits,
+-- then applies the same scale factor inside so cells are drawn to fit.
 function AsciiGrid:renderToCanvas(charWidth, charHeight)
     local cols, rows = self.engine:getGridSize()
+    local scale = self.engine.scale
 
-    if not self.canvas then
-        self.canvas = love.graphics.newCanvas(cols * charWidth, rows * charHeight)
+    -- Build a canvas that matches the final on-screen pixel size so we stay
+    -- well within GPU max-texture-size limits regardless of font size or grid
+    -- dimensions.  math.max(1, …) guards against degenerate zero sizes.
+    local canvasWidth  = math.max(1, math.ceil(cols * charWidth  * scale))
+    local canvasHeight = math.max(1, math.ceil(rows * charHeight * scale))
+
+    if not self.canvas
+        or self.canvas:getWidth()  ~= canvasWidth
+        or self.canvas:getHeight() ~= canvasHeight
+    then
+        self.canvas = love.graphics.newCanvas(canvasWidth, canvasHeight)
     end
 
     love.graphics.push()
     love.graphics.origin()
+    love.graphics.scale(scale, scale)
     love.graphics.setFont(self.engine.font)
     love.graphics.setCanvas(self.canvas)
     love.graphics.clear(0, 0, 0, 0)
@@ -244,8 +258,15 @@ function AsciiGrid:drawBuffered(charWidth, charHeight)
     if self.dirty then
         self:renderToCanvas(charWidth, charHeight)
     end
+    -- The engine has already applied scale(self.scale, self.scale) before
+    -- calling us.  Our canvas is pre-rendered at that scale, so undo the
+    -- engine's scale before blitting to avoid double-scaling.
+    local scale = self.engine.scale
     love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.push()
+    love.graphics.scale(1 / scale, 1 / scale)
     love.graphics.draw(self.canvas, 0, 0)
+    love.graphics.pop()
 end
 
 function AsciiGrid:setViewport(options)

@@ -48,6 +48,13 @@ function AsciiEngine:setFont(font)
     
     -- Recalculate scaling after font change
     self:calculateScaling()
+
+    -- Invalidate cached canvases; charWidth/charHeight changed so the
+    -- pre-scaled canvas dimensions are now wrong.
+    for _, layer in ipairs(self.layers) do
+        layer.canvas = nil
+        layer.dirty  = true
+    end
 end
 
 function AsciiEngine:setGridSize(cols, rows)
@@ -165,6 +172,12 @@ end
 
 function AsciiEngine:resize()
     self:calculateScaling()
+    -- The scale factor changed, so pre-scaled canvases are now the wrong
+    -- size.  Mark them dirty so they are recreated on the next draw call.
+    for _, layer in ipairs(self.layers) do
+        layer.canvas = nil
+        layer.dirty  = true
+    end
 end
 
 function AsciiEngine:getGridSize()
