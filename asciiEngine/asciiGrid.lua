@@ -23,6 +23,8 @@ function AsciiGrid:new(id, options)
             x = 1,
             y = 1,
         },
+        canvas = nil,
+        dirty = true,
     }, self)
 end
 
@@ -57,6 +59,7 @@ function AsciiGrid:setCell(x, y, options)
         cell.sprite          = options.sprite
         cell.offsetX         = options.offsetX or 0
         cell.offsetY         = options.offsetY or 0
+        self.dirty = true
     end
 end
 
@@ -79,12 +82,13 @@ end
 
 function AsciiGrid:clear(options)
     local cols, rows = self.engine:getGridSize()
-    
+
     for y = 1, rows do
         for x = 1, cols do
             self:clearCell(x, y, options)
         end
     end
+    self.dirty = true
 end
 
 function AsciiGrid:fillRect(x1, y1, x2, y2, glyph, color, backgroundColor)
@@ -181,6 +185,67 @@ function AsciiGrid:drawCell(x, y, charWidth, charHeight)
     end
 
     return false
+end
+
+-- Like drawCell but ignores offsetX/offsetY — used when rendering to a cached canvas.
+function AsciiGrid:drawCellBuffered(x, y, charWidth, charHeight)
+    if not self:isDrawableCell(x, y) then return false end
+
+    local cell = self.cells[y][x]
+    if cell then
+        local drawX = (x - 1) * charWidth
+        local drawY = (y - 1) * charHeight
+
+        if cell.backgroundColor then
+            love.graphics.setColor(cell.backgroundColor)
+            love.graphics.rectangle("fill", drawX, drawY, charWidth, charHeight)
+        end
+        if cell.sprite then
+            love.graphics.setColor(cell.color or {1, 1, 1, 1})
+            cell.sprite:draw(drawX, drawY, {scaleX = charWidth / cell.sprite.width, scaleY = charHeight / cell.sprite.height})
+        elseif cell.glyph and cell.glyph ~= ' ' then
+            love.graphics.setColor(cell.color or {1, 1, 1, 1})
+            love.graphics.print(cell.glyph, drawX, drawY)
+        end
+        return true
+    end
+    return false
+end
+
+-- Re-renders all cells onto self.canvas. Resets Love2D transform so the canvas
+-- is drawn at natural (unscaled) size regardless of the caller's transform state.
+function AsciiGrid:renderToCanvas(charWidth, charHeight)
+    local cols, rows = self.engine:getGridSize()
+
+    if not self.canvas then
+        self.canvas = love.graphics.newCanvas(cols * charWidth, rows * charHeight)
+    end
+
+    love.graphics.push()
+    love.graphics.origin()
+    love.graphics.setFont(self.engine.font)
+    love.graphics.setCanvas(self.canvas)
+    love.graphics.clear(0, 0, 0, 0)
+
+    for y = 1, rows do
+        for x = 1, cols do
+            self:drawCellBuffered(x, y, charWidth, charHeight)
+        end
+    end
+
+    love.graphics.setCanvas()
+    love.graphics.pop()
+
+    self.dirty = false
+end
+
+-- Called by the engine for non-advanced layers. Re-renders to canvas only when dirty.
+function AsciiGrid:drawBuffered(charWidth, charHeight)
+    if self.dirty then
+        self:renderToCanvas(charWidth, charHeight)
+    end
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(self.canvas, 0, 0)
 end
 
 function AsciiGrid:setViewport(options)

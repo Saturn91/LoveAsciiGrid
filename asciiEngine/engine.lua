@@ -84,6 +84,17 @@ function AsciiEngine:calculateScaling()
 end
 
 function AsciiEngine:addLayer(layer, options)
+    layer.isAdvanced = false
+    layer:initialize(self, options)
+    if self.layerLookUp[layer.id] then error("Layer with id '" .. layer.id .. "' already exists") end
+    self.layerLookUp[layer.id] = layer
+    table.insert(self.layers, layer)
+end
+
+-- Advanced layers support per-cell offsetX/offsetY (e.g. for animations).
+-- They are rendered every frame via the per-cell path instead of a cached canvas.
+function AsciiEngine:addAdvancedLayer(layer, options)
+    layer.isAdvanced = true
     layer:initialize(self, options)
     if self.layerLookUp[layer.id] then error("Layer with id '" .. layer.id .. "' already exists") end
     self.layerLookUp[layer.id] = layer
@@ -92,36 +103,32 @@ end
 
 function AsciiEngine:draw()
     love.graphics.push()
-    
+
     love.graphics.translate(self.offsetX, self.offsetY)
     love.graphics.scale(self.scale, self.scale)
 
     love.graphics.setFont(self.font)
 
-    local drawX, drawY
-    
-    for x = 1, self.gridCols do
-        for y = 1, self.gridRows do
-            drawX = (x - 1) * self.charWidth
-            drawY = (y - 1) * self.charHeight
-
-            local hasAnyDrawn = false
-            for key, layer in ipairs(self.layers) do
-                local isBlocking = layer.blocking
-
-                --clear cell bellow blocking layers
-                if layer:isDrawableCell(x, y) and isBlocking and hasAnyDrawn then
-                    love.graphics.setColor(0, 0, 0, 1)
-                    love.graphics.rectangle("fill", drawX, drawY, self.charWidth, self.charHeight)
-                end
-
-                if layer:drawCell(x, y, self.charWidth, self.charHeight) then
-                    hasAnyDrawn = true
+    for _, layer in ipairs(self.layers) do
+        if layer.isAdvanced then
+            -- Per-cell draw: supports offsetX/offsetY per cell.
+            -- Blocking advanced layers occlude whatever was drawn below them.
+            for x = 1, self.gridCols do
+                for y = 1, self.gridRows do
+                    if layer.blocking and layer:isDrawableCell(x, y) then
+                        love.graphics.setColor(0, 0, 0, 1)
+                        love.graphics.rectangle("fill", (x - 1) * self.charWidth, (y - 1) * self.charHeight, self.charWidth, self.charHeight)
+                    end
+                    layer:drawCell(x, y, self.charWidth, self.charHeight)
                 end
             end
+        else
+            -- Buffered draw: re-renders to a canvas only when dirty, then blits.
+            -- offsetX/offsetY on cells is ignored for buffered layers.
+            layer:drawBuffered(self.charWidth, self.charHeight)
         end
     end
-    
+
     love.graphics.pop()
 end
 
