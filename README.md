@@ -44,6 +44,7 @@ This tells Love2D's filesystem to look for modules in the `libs/loveAsciiGrid/` 
 
 - **Grid-based ASCII rendering** with automatic scaling and centering
 - **Multi-layer system** for organizing different game elements
+- **Advanced (unbuffered) layer** for per-cell offset rendering — draw cells at custom `ox`/`oy` offsets without canvas caching
 - **Font support** with easy font switching
 - **Sprite support** for graphical elements in grid cells
 - **Responsive scaling** that maintains aspect ratio
@@ -217,6 +218,36 @@ local uiGrid = AsciiGrid:new("ui")
 engine:addLayer(uiGrid)
 ```
 
+### Advanced (Unbuffered) Layer
+
+An **advanced layer** is rendered every frame directly to the screen — it is never cached to a canvas. This makes it ideal for cells that need per-cell pixel offsets (`offsetX` / `offsetY`), such as smooth movement animations or displaying a character's sub-cell world position (`ox`, `oy`).
+
+```lua
+local AsciiGrid = require("asciiEngine.asciiGrid")
+
+-- Create and add an advanced (unbuffered) layer
+local animLayer = AsciiGrid:new("animated")
+engine:addAdvancedLayer(animLayer)
+
+-- Set a cell with a sub-cell pixel offset (ox / oy)
+local ox, oy = 8, -4  -- offset in unscaled pixels
+animLayer:setCell(playerX, playerY, {
+    glyph   = "@",
+    color   = {1, 1, 1, 1},
+    offsetX = ox,
+    offsetY = oy,
+})
+```
+
+Key differences from a regular (buffered) layer:
+
+| | Buffered (`addLayer`) | Advanced (`addAdvancedLayer`) |
+|---|---|---|
+| Canvas caching | Yes — redrawn only when `dirty` | No — redrawn every frame |
+| Per-cell `offsetX`/`offsetY` | Ignored | Fully supported |
+| Performance | Best for static/rarely-updated content | Best for animated or offset content |
+| Occlusion (blocking) | Transparent cells show layers below | Same, but evaluated per-frame |
+
 ## Demo Controls
 
 - **1/2/3** - Switch between different grid sizes (40x15, 80x25, 120x35)
@@ -239,6 +270,7 @@ engine:addLayer(uiGrid)
 - `draw()` - Render all layers
 - `resize()` - Recalculate scaling after window resize
 - `update()` - Update internal state including mouse grid position
+- `addAdvancedLayer(layer)` - Add an unbuffered layer that renders every frame and supports per-cell `offsetX`/`offsetY`
 - `screenToGrid(x, y)` - Convert screen coordinates to grid coordinates
 - `gridToScreen(x, y)` - Convert grid coordinates to screen coordinates
 
@@ -251,7 +283,7 @@ engine:addLayer(uiGrid)
 - `AsciiGrid:new(id)` - Create a new grid layer
 
 #### Methods
-- `setCell(x, y, options)` - Set content at position. Options can include: `glyph` (string), `color` (table), `backgroundColor` (table), `sprite` (Sprite object)
+- `setCell(x, y, options)` - Set content at position. Options can include: `glyph` (string), `color` (table), `backgroundColor` (table), `sprite` (Sprite object), `offsetX` (number, pixels — advanced layers only), `offsetY` (number, pixels — advanced layers only)
 - `getCell(x, y)` - Get cell data at position
 - `writeText(x, y, text, color, backgroundColor)` - Write text starting at position
 - `drawBorder(glyph, color)` - Draw a border around the grid
