@@ -1,184 +1,130 @@
-love.graphics.setDefaultFilter('nearest', 'nearest')
+love.graphics.setDefaultFilter("nearest", "nearest")
 
-local AsciiEngine = require("asciiEngine.engine")
-local AsciiGrid = require("asciiEngine.asciiGrid")
+local Grid        = require("asciiEngine.Grid")
+local SpriteSheet = require("spriteSheet.SpriteSheet")
 
-local charScale = 240.0
-
--- Font paths array
-local FONT_PATHS = {
+local FONTS = {
     "assets/fonts/Ac437_IBM_BIOS.ttf",
     "assets/fonts/Ac437_IBM_BIOS-2x.ttf",
     "assets/fonts/Ac437_IBM_BIOS-2y.ttf",
-    "assets/fonts/DejaVuSansMono.ttf"
+    "assets/fonts/DejaVuSansMono.ttf",
 }
+local FONT_SIZE = 240
 
-local testSprites = SpriteSheet.new("resources/test-sprites.png", {
-    gridWidth = 16,
-    gridHeight = 16,
-    id = "testsprites"
-})
+local grid
+local sprites
+local time      = 0
+local fontIndex = 1
 
-local engine
-local time = 0
-local currentFontIndex = 1
-
-function love.load()    
-    engine = AsciiEngine:new({
-        gridCols = 80,
-        gridRows = 25,
-        font = love.graphics.newFont(FONT_PATHS[currentFontIndex], charScale)
-    })
-    
-    engine:addLayer(AsciiGrid:new("main"))
-    
-    engine:calculateScaling()
-    
+function love.load()
     love.window.setMode(800, 600, {resizable = true})
     love.window.setVSync(false)
-    
+
+    sprites = SpriteSheet.new("resources/test-sprites.png", {gridWidth = 16, gridHeight = 16})
+
+    grid = Grid.new({
+        cols = 80,
+        rows = 25,
+        font = love.graphics.newFont(FONTS[fontIndex], FONT_SIZE),
+    })
+
+    grid:addLayer("main")
     setupDemo()
 end
 
 function love.update(dt)
     time = time + dt
-    
-    animateDemo(dt)
+    animateDemo()
 end
 
-function love.draw()    
-    engine:draw()
-    drawInfo()
+function love.draw()
+    grid:draw()
+    drawHUD()
     love.graphics.setColor(1, 1, 1, 1)
 end
 
 function love.resize(w, h)
-    engine:resize()
+    grid:resize()
 end
 
 function love.keypressed(key)
     if key == "escape" then
         love.event.quit()
     elseif key == "1" then
-        -- Change to 40x15 grid
-        engine:setGridSize(40, 15)
+        grid:setGridSize(40, 15)
         setupDemo()
     elseif key == "2" then
-        -- Change to 80x25 grid
-        engine:setGridSize(80, 25)
+        grid:setGridSize(80, 25)
         setupDemo()
     elseif key == "3" then
-        -- Change to 120x35 grid
-        engine:setGridSize(120, 35)
+        grid:setGridSize(120, 35)
         setupDemo()
     elseif key == "f" then
-        -- Cycle through fonts
-        currentFontIndex = currentFontIndex % #FONT_PATHS + 1
-        local newFont = love.graphics.newFont(FONT_PATHS[currentFontIndex], 240)
-        engine:setFont(newFont)
+        fontIndex = fontIndex % #FONTS + 1
+        grid:setFont(love.graphics.newFont(FONTS[fontIndex], FONT_SIZE))
         setupDemo()
     elseif key == "c" then
-        -- Clear and redraw
         setupDemo()
     end
 end
 
 function setupDemo()
-    local mainGrid = engine:getLayerById("main")
-    -- Clear the grid
-    mainGrid:clear()
-    
-    local cols, rows = engine:getGridSize()
-    
-    -- Draw border
-    mainGrid:drawBorder({
-        glyph = "█",
-    }, {0.8, 0.8, 0.8, 1})
-    
-    -- Draw title
+    local layer = grid:layer("main")
+    layer:clear()
+
+    local cols, rows = grid:getGridSize()
+
+    layer:border({glyph = "█", color = {0.8, 0.8, 0.8, 1}})
+
     local title = "ASCII Grid Engine Demo"
-    local titleX = math.floor((cols - #title) / 2) + 1
-    mainGrid:writeText(titleX, 3, title, {1, 1, 0, 1}) -- Yellow
-    
-    -- Draw grid size info
-    local gridInfo = "Grid: " .. cols .. "x" .. rows
-    mainGrid:writeText(3, 5, gridInfo, {0.7, 0.7, 1, 1}) -- Light blue
+    layer:write(math.floor((cols - #title) / 2) + 1, 3, title, {1, 1, 0, 1})
+    layer:write(3, 5, "Grid: " .. cols .. "x" .. rows, {0.7, 0.7, 1, 1})
 
-    -- Draw some decorative elements
     for i = 1, 10 do
-        local x = math.random(3, cols - 2)
-        local y = math.random(7, rows - 7)
-        mainGrid:setCell(x, y, {
-            sprite = testSprites:getSprite({x = math.random(0, 1), y = math.random(0, 1)}),
-            backgroundColor = {0.5, 0.5, 0.5, 1}
+        layer:set(math.random(3, cols - 2), math.random(7, rows - 7), {
+            sprite     = sprites:getSprite(math.random(0, 1), math.random(0, 1)),
+            background = {0.5, 0.5, 0.5, 1},
         })
     end
-    
-    -- Draw instructions
-    local instructions = {
-        "Controls:",
-        "1/2/3 - Change grid size",
-        "F - Change font",
-        "C - Clear and redraw",
-        "ESC - Quit"
-    }
-    
-    for i, instruction in ipairs(instructions) do
-        mainGrid:writeText(3, rows - 7 + i, instruction, {0.8, 0.8, 0.8, 1})
+
+    local controls = {"Controls:", "1/2/3 - Grid size", "F - Font", "C - Redraw", "ESC - Quit"}
+    for i, text in ipairs(controls) do
+        layer:write(3, rows - 6 + i, text, {0.8, 0.8, 0.8, 1})
     end
 end
 
-function animateDemo(dt)
-    local cols, rows = engine:getGridSize()
-    
-    local mainGrid = engine:getLayerById("main")
-    
-    -- Animate some sparkles
+function animateDemo()
+    local layer = grid:layer("main")
+    local cols, rows = grid:getGridSize()
+
     if math.random() < 0.1 then
-        local x = math.random(3, cols - 2)
-        local y = math.random(8, rows - 8)
         local sparkles = {"*", "·", "°", "•"}
-        local sparkle = sparkles[math.random(#sparkles)]
-        mainGrid:setCell(x, y, {
-            glyph = sparkle,
-            color = {1, 1, 0.5, 1}
+        layer:set(math.random(3, cols - 2), math.random(8, rows - 8), {
+            glyph = sparkles[math.random(#sparkles)],
+            color = {1, 1, 0.5, 1},
         })
     end
-    
-    -- Animate a moving character
+
     local waveX = math.floor(math.sin(time) * (cols - 10) / 2 + cols / 2)
-    local waveY = math.floor(rows / 2)
-    mainGrid:setCell(waveX, waveY, {
-        sprite = testSprites:getSprite({x = 0, y = 0}),
-    }) -- Red character
+    layer:set(waveX, math.floor(rows / 2), {sprite = sprites:getSprite(0, 0)})
 end
 
-function drawInfo()
-    -- Draw info overlay (not part of the ASCII grid)
-    love.graphics.setColor(1, 1, 1, 0.8)
-    love.graphics.setFont(love.graphics.newFont(12))
-    
-    local scale = engine:getScale()
-    local cols, rows = engine:getGridSize()
-    local fontName = FONT_PATHS[currentFontIndex]:match("([^/\\]+)%.ttf$") or "Unknown"
-    local charWidth, charHeight = engine:getCharSize()
-    
-    local info = string.format(
-        "Scale: %.2f | Grid: %dx%d | Font: %s | char ratio %.2f x %.2f",
-        scale, cols, rows, fontName, charWidth / charScale, charHeight / charScale
+function drawHUD()
+    local font = love.graphics.newFont(12)
+    love.graphics.setFont(font)
+
+    local cols, rows = grid:getGridSize()
+    local cw, ch    = grid:getCharSize()
+    local fontName  = FONTS[fontIndex]:match("([^/\\]+)%.ttf$") or "Unknown"
+    local info      = string.format(
+        "Scale: %.2f | Grid: %dx%d | Font: %s | Char: %.2fx%.2f | FPS: %d",
+        grid:getScale(), cols, rows, fontName, cw / FONT_SIZE, ch / FONT_SIZE, love.timer.getFPS()
     )
-    
-    -- Draw background rectangle
-    local textWidth = love.graphics.getFont():getWidth(info)
-    local textHeight = love.graphics.getFont():getHeight()
+
+    local tw = font:getWidth(info)
+    local th = font:getHeight()
     love.graphics.setColor(0, 0, 0, 0.7)
-    love.graphics.rectangle("fill", 5, 5, textWidth + 10, textHeight + 10)
-    
-    -- Draw text
-    love.graphics.setColor(1, 1, 1, 0.8)
+    love.graphics.rectangle("fill", 5, 5, tw + 10, th + 10)
+    love.graphics.setColor(1, 1, 1, 0.9)
     love.graphics.print(info, 10, 10)
-    --fps
-    local fps = love.timer.getFPS()
-    love.graphics.print("FPS: " .. fps, 10, 30)
-    love.graphics.setColor(1, 1, 1, 1)
 end
