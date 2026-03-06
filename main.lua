@@ -35,6 +35,7 @@ function love.load()
     engine:calculateScaling()
     
     love.window.setMode(800, 600, {resizable = true})
+    love.window.setVSync(false)
     
     setupDemo()
 end
@@ -176,5 +177,8 @@ function drawInfo()
     -- Draw text
     love.graphics.setColor(1, 1, 1, 0.8)
     love.graphics.print(info, 10, 10)
+    --fps
+    local fps = love.timer.getFPS()
+    love.graphics.print("FPS: " .. fps, 10, 30)
     love.graphics.setColor(1, 1, 1, 1)
 end
