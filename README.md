@@ -10,6 +10,22 @@ A performant ASCII grid renderer for [LÖVE2D](https://love2d.org/).
 
 ---
 
+## Setup
+import this library as a git submodule:
+
+`git submodule add https://github.com/Saturn91/LoveAsciiGrid libs/ascii-grid`
+
+Then make sure that your love2d project is able to require it
+
+```lua
+local packages = {
+    "libs/loveAsciiGrid/?.lua",
+}
+
+local current = love.filesystem.getRequirePath and love.filesystem.getRequirePath() or "?.lua;"
+love.filesystem.setRequirePath(table.concat(packages, ";") .. ";" .. current)
+```
+
 ## Quick Start
 
 ```lua
